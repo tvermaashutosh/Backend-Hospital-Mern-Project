@@ -9,7 +9,19 @@ const { body, validationResult } = require('express-validator')
 router.get('/fetchallpatients', fetchDoctor, async (req, res) => {
   try {
     const patients = await Patient.find({ doctor: req.doctor.id })
-    res.json(patients)
+
+    const modifiedPatients = patients.map((obj) => {
+      obj.registrationDate = obj.registrationDate.replace(/ GMT\+\d{4} \((.*)\)$/, '');
+      return obj;
+    });
+
+    const sortedPatients = modifiedPatients.sort((a, b) => {
+      const date1 = new Date(a.registrationDate);
+      const date2 = new Date(b.registrationDate);
+      return date2 - date1; // sort in descending order
+    });
+
+    res.json(sortedPatients)
   }
   catch (err) {
     console.error(err.message)
